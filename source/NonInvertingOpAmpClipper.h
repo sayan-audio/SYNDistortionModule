@@ -1,13 +1,20 @@
 /*
- * TODOs
- * 1. I'll digitise the Non-Inverting Op Amp Clipper Circuit
- * 2. Mark variables as constants
+ * TODOs:
+ * 1. [x] I'll digitise the Non-Inverting Op Amp Clipper Circuit
+ * 2. [x] Mark variables as constants
  * 2. Fix the warning for explicit conversion to float
  * 2. Refactor Diodes into a function
  * 3. Refactor the reset method
  * 4. Refactor base class for processor
+ * 5. Ensure that the sample rate is being updated
  *
  * At each step make sure it works
+ *
+ * Notes:
+ * - What if I take another class with my favourite clipper
+ *   and add it to process after this block?
+ *   In the same DistortionProcessor
+ * - It'd be great to do tests by automating params in Cubase
  */
 
 #pragma once
@@ -64,16 +71,16 @@ private:
 
 	// Components
 	const float eta = 1.f;
-	const float Is = 1e-15;
-	const float Vt = 26e-3;
+	const float Is = (float) 1e-15;
+	const float Vt = (float) 26e-3;
 
-	float C1 = 47e-9;
+	float C1 = (float) 47e-9;
 	float R1 = Ts / (2.f * C1);
-	float R4 = 4700.f;
+	const float R4 = 4700.f;
 
-	float C2 = 51e-12;
+	float C2 = (float) 51e-12;
 	float R2 = Ts / (2.f * C2);
-	float R3 = 51000.f + 500e3;
+	const float R3 = 51000.f + 500e3;
 
 	// Combined Resistances
 	float G1 = (1.f + R4 / R1);
@@ -84,10 +91,10 @@ private:
 	float X2 = 0.f;
 	float Vd = 0.f;
 
-	float thr = 0.00000000001f; // Might want to make const
+	const float thr = 0.00000000001f;
 
 	float processSingleSample(float Vin) {
-		int iter = 1; // Change to size_t
+		size_t iter = 1;
 		float b = 1.f;
 
 		float p = -Vin / (G4 * R4) + R1 / (G4 * R4) * X1 - X2;
@@ -126,10 +133,7 @@ private:
 		Ts = 1.f / Fs;
 
 		R1 = Ts / (2.f * C1);
-		R4 = 4700.f; // Might want to remove and make const
-
 		R2 = Ts / (2.f * C2);
-		R3 = 51000.f + 500e3; // Might want to remove and make const
 
 		G1 = (1.f + R4 / R1);
 		G4 = (1.f + R1 / R4);
