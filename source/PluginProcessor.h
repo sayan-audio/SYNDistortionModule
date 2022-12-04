@@ -3,6 +3,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_dsp/juce_dsp.h>
 #include "ParameterReferences.h"
+#include "NonInvertingOpAmpClipper.h"
 
 //==============================================================================
 class AudioPluginAudioProcessor  : public juce::AudioProcessor, private juce::ValueTree::Listener
@@ -51,16 +52,44 @@ private:
     void update();
     void valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&) override;
     
+    struct DistortionProcessor
+    {
+        DistortionProcessor() {}
+        ~DistortionProcessor() {}
+
+        void prepare (const juce::dsp::ProcessSpec& spec) {
+            distortion.prepare((float) spec.sampleRate);
+        }
+
+        void update() {}
+        void reset() {}
+
+        template <typename Context>
+        void process (Context& context)
+        {
+            if (context.isBypassed)
+                return;
+
+            distInputGain.process(context);
+            distortion.process(context);
+            distCompGain.process(context);
+        }
+
+        juce::dsp::Gain<float> distInputGain, distCompGain;
+        NonInvertingOpAmpClipper distortion;
+    };
+
     ParameterReferences parameters;
     juce::AudioProcessorValueTreeState apvts;
 
     enum ProcessorIndices
     {
         inputGainIndex,
+        distortionProcessorIndex,
         outputGainIndex
     };
 
-    using Chain = juce::dsp::ProcessorChain<juce::dsp::Gain<float>, juce::dsp::Gain<float>>;
+    using Chain = juce::dsp::ProcessorChain<juce::dsp::Gain<float>, DistortionProcessor, juce::dsp::Gain<float>>;
     Chain chain;
 
     std::atomic<bool> requiresUpdate { true };

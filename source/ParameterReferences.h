@@ -60,6 +60,20 @@ struct ParameterReferences
 				juce::NormalisableRange<float>(-60.0f, 60.0f),
 				0.0f,
 				getDbAttributes())),
+			  distInputGain(addToLayout<Parameter>(
+			  	layout,
+			  	juce::ParameterID { ID::distInputGain, 1 },
+			  	"Dist. Input Gain",
+			  	juce::NormalisableRange<float>(-60.0f, 60.0f),
+			  	0.0f,
+			  	getDbAttributes())),
+			  distCompGain(addToLayout<Parameter>(
+			  	layout,
+			  	juce::ParameterID { ID::distCompGain, 1 },
+			  	"Dist. Comp Gain",
+			  	juce::NormalisableRange<float>(-60.0f, 60.0f),
+			  	0.0f,
+			  	getDbAttributes())),
 			  outputGain(addToLayout<Parameter>(
 			  	layout,
 			  	juce::ParameterID { ID::outputGain, 1 },
@@ -70,7 +84,10 @@ struct ParameterReferences
 		{}
 
 		Parameter& inputGain;
+		Parameter& distInputGain;
+		Parameter& distCompGain;
 		Parameter& outputGain;
+
 	};
 
 	ParameterReferences(juce::AudioProcessorValueTreeState::ParameterLayout& layout)

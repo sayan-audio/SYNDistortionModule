@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.18)
 
 set(COMPANY_NAME "SAYAN AUDIO")
-set(PROJECT_NAME "<PLUGIN NAME>")
+set(PROJECT_NAME "SYNDistortionModule")
 set(BUNDLE_ID "com.sayan.audio")
 set(PLUGIN_MANUFACTURER_CODE "SYNA")
-set(PLUGIN_CODE "<PLUGIN CODE>") 
+set(PLUGIN_CODE "D1s7") 
 
 set(EXPORT_NAME "${PROJECT_NAME}" CACHE STRING "Name of plugin")
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Type of build. [Release]/Debug" FORCE)
@@ -39,6 +39,7 @@ juce_add_plugin("${PROJECT_NAME}"
 set(SOURCE_FILES
   source/ParameterIds.h
   source/ParameterReferences.h
+  source/NonInvertingOpAmpClipper.h
   source/PluginEditor.cpp
   source/PluginEditor.h
   source/PluginProcessor.cpp

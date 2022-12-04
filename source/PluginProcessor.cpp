@@ -117,6 +117,13 @@ void AudioPluginAudioProcessor::reset()
 
 void AudioPluginAudioProcessor::update()
 {
+    {
+        DistortionProcessor& distortionProcessor = juce::dsp::get<distortionProcessorIndex>(chain);
+
+        distortionProcessor.distInputGain.setGainDecibels(parameters.main.distInputGain.get());
+        distortionProcessor.distCompGain.setGainDecibels(parameters.main.distCompGain.get());
+    }
+
     juce::dsp::get<inputGainIndex>(chain).setGainDecibels(parameters.main.inputGain.get());
     juce::dsp::get<outputGainIndex>(chain).setGainDecibels(parameters.main.outputGain.get());
 
