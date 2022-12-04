@@ -2,7 +2,7 @@
  * TODOs:
  * 1. [x] I'll digitise the Non-Inverting Op Amp Clipper Circuit
  * 2. [x] Mark variables as constants
- * 2. Fix the warning for explicit conversion to float
+ * 2. [x] Fix the warning for explicit conversion to float
  * 2. Refactor Diodes into a function
  * 3. Refactor the reset method
  * 4. Refactor base class for processor
@@ -70,10 +70,6 @@ private:
 	float Ts = 1.f / Fs;
 
 	// Components
-	const float eta = 1.f;
-	const float Is = (float) 1e-15;
-	const float Vt = (float) 26e-3;
-
 	float C1 = (float) 47e-9;
 	float R1 = Ts / (2.f * C1);
 	const float R4 = 4700.f;
@@ -99,13 +95,13 @@ private:
 
 		float p = -Vin / (G4 * R4) + R1 / (G4 * R4) * X1 - X2;
 
-		float fVd = p + Vd / R2 + Vd / R3 + 2.f*Is * sinh(Vd / (eta * Vt));
+		float fVd = p + Vd / R2 + Vd / R3 + symmetricDiodes(Vd);
 
 		while (iter < 50 && abs(fVd) > thr)
 		{
-			float fpVd = 2.f * Is / (eta * Vt) * cosh(Vd / (eta * Vt)) + 1.f / R2 + 1.f / R3;
+			float fpVd = symmetricDiodes(Vd, true) + 1.f / R2 + 1.f / R3;
 			float Vnew = Vd - b * fVd / fpVd;
-			float fn = p + Vnew / R2 + Vnew / R3 + 2.f * Is * sinh(Vnew / (eta * Vt));
+			float fn = p + Vnew / R2 + Vnew / R3 + symmetricDiodes(Vnew);
 
 			if (abs(fn) < abs(fVd))
 			{
@@ -117,7 +113,7 @@ private:
 				b *= 0.5f;
 			}
 
-			fVd = p + Vd / R2 + Vd / R3 + 2.f * Is * sinh(Vd / (eta * Vt));
+			fVd = p + Vd / R2 + Vd / R3 + symmetricDiodes(Vd);
 			iter++;
 		}
 
@@ -137,6 +133,26 @@ private:
 
 		G1 = (1.f + R4 / R1);
 		G4 = (1.f + R1 / R4);
+	}
+
+	static float symmetricDiodes(float Vin, bool isDenom = false, float n = 1.f)
+	{
+		const float eta = 1.f;
+		const float Is = (float) 1e-15;
+		const float Vt = (float) 26e-3;
+
+		float Vd = 0.f;
+
+		if (isDenom)
+    	{
+    		Vd = 2.f * Is / (n * eta * Vt) * cosh(Vin / (n * eta * Vt));
+    	}
+    	else
+    	{
+    		Vd = 2.f * Is * sinh(Vin / (n * eta * Vt));
+    	}
+
+    	return Vd;
 	}
 
 	//==============================================================================
