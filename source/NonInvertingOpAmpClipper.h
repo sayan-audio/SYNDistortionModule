@@ -4,7 +4,7 @@
  * 2. [x] Mark variables as constants
  * 2. [x] Fix the warning for explicit conversion to float
  * 2. [x] Refactor Diodes into a function
- * 3. Refactor the reset method
+ * 3. [x] Refactor the reset method
  * 4. Refactor base class for processor
  * 5. Ensure that the sample rate is being updated
  *
@@ -25,16 +25,11 @@ public:
 	NonInvertingOpAmpClipper() {}
 	~NonInvertingOpAmpClipper() {}
 
-	void prepare (float newFs)
+	void reset (float Fs)
 	{
-		if (Fs != newFs)
-		{
-			Fs = newFs;
-			updateCoefficients();
-		}
+		Ts = 1.f / Fs;
+		updateCoefficients();
 	}
-
-	void reset() {}
 
 	template <typename Context>
     void process (Context& context)
@@ -66,8 +61,7 @@ public:
     	}
     }
 private:
-	float Fs = 44100.f; // Initial sample rate
-	float Ts = 1.f / Fs;
+	float Ts = 1.f / 44100.0f;
 
 	// Components
 	float C1 = (float) 47e-9;
@@ -126,8 +120,6 @@ private:
 
 	void updateCoefficients()
 	{
-		Ts = 1.f / Fs;
-
 		R1 = Ts / (2.f * C1);
 		R2 = Ts / (2.f * C2);
 

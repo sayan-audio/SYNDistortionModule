@@ -58,10 +58,9 @@ private:
         ~DistortionProcessor() {}
 
         void prepare (const juce::dsp::ProcessSpec& spec) {
-            distortion.prepare((float) spec.sampleRate);
+            distortion.reset((float) spec.sampleRate);
         }
 
-        void update() {}
         void reset() {}
 
         template <typename Context>
