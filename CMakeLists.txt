@@ -39,6 +39,7 @@ juce_add_plugin("${PROJECT_NAME}"
 set(SOURCE_FILES
   source/ParameterIds.h
   source/ParameterReferences.h
+  source/ClipperBase.h
   source/NonInvertingOpAmpClipper.h
   source/PluginEditor.cpp
   source/PluginEditor.h

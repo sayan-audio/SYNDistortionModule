@@ -58,10 +58,14 @@ private:
         ~DistortionProcessor() {}
 
         void prepare (const juce::dsp::ProcessSpec& spec) {
-            distortion.reset((float) spec.sampleRate);
+            oversampler.initProcessing(spec.maximumBlockSize);
+
+            distortion.reset(oversampler.getOversamplingFactor() * (float) spec.sampleRate);
         }
 
-        void reset() {}
+        void reset() {
+            oversampler.reset();
+        }
 
         template <typename Context>
         void process (Context& context)
@@ -69,13 +73,24 @@ private:
             if (context.isBypassed)
                 return;
 
+            const auto& inputBlock = context.getInputBlock();
+
             distInputGain.process(context);
+
+            auto ovBlock = oversampler.processSamplesUp(inputBlock);
+            juce::dsp::ProcessContextReplacing<float> distortionContext (ovBlock);
+
             distortion.process(context);
+
+            auto& outputBlock = context.getOutputBlock();
+            oversampler.processSamplesDown(outputBlock);
+
             distCompGain.process(context);
         }
 
         juce::dsp::Gain<float> distInputGain, distCompGain;
         NonInvertingOpAmpClipper distortion;
+        juce::dsp::Oversampling<float> oversampler { 2, 2, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true, false };
     };
 
     ParameterReferences parameters;

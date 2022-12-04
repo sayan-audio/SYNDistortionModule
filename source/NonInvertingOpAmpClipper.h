@@ -5,7 +5,7 @@
  * 2. [x] Fix the warning for explicit conversion to float
  * 2. [x] Refactor Diodes into a function
  * 3. [x] Refactor the reset method
- * 4. Refactor base class for processor
+ * 4. [x] Refactor base class for processor
  * 5. Ensure that the sample rate is being updated
  *
  * At each step make sure it works
@@ -19,57 +19,22 @@
 
 #pragma once
 
-class NonInvertingOpAmpClipper
+#include "ClipperBase.h"
+
+class NonInvertingOpAmpClipper : public ClipperBase
 {
 public:
 	NonInvertingOpAmpClipper() {}
 	~NonInvertingOpAmpClipper() {}
 
-	void reset (float Fs)
-	{
-		Ts = 1.f / Fs;
-		updateCoefficients();
-	}
-
-	template <typename Context>
-    void process (Context& context)
-    {
-    	auto&& inputBlock  = context.getInputBlock();
-    	auto&& outputBlock = context.getOutputBlock();
-    	auto numSamples  = inputBlock.getNumSamples();
-    	auto numChannels = inputBlock.getNumChannels();
-
-    	for (size_t channel = 0; channel < numChannels; ++channel)
-    	{
-    		auto* src = inputBlock .getChannelPointer (channel);
-    		auto* dst = outputBlock.getChannelPointer (channel);
-
-    		if (context.isBypassed)
-    		{
-    			for (size_t i = 0; i < numSamples; ++i)
-    			{
-    				dst[i] = src[i];
-    			}
-    		}
-    		else
-    		{
-    			for (size_t i = 0; i < numSamples; ++i)
-    			{
-    				dst[i] = processSingleSample(src[i]);
-    			}
-    		}
-    	}
-    }
 private:
-	float Ts = 1.f / 44100.0f;
-
 	// Components
 	float C1 = (float) 47e-9;
-	float R1 = Ts / (2.f * C1);
+	float R1 = getCapResistance(C1);
 	const float R4 = 4700.f;
 
 	float C2 = (float) 51e-12;
-	float R2 = Ts / (2.f * C2);
+	float R2 = getCapResistance(C1);
 	const float R3 = 51000.f + 500e3;
 
 	// Combined Resistances
@@ -83,7 +48,8 @@ private:
 
 	const float thr = 0.00000000001f;
 
-	float processSingleSample(float Vin) {
+	float processSingleSample(float Vin)
+	{
 		size_t iter = 1;
 		float b = 1.f;
 
@@ -120,72 +86,12 @@ private:
 
 	void updateCoefficients()
 	{
-		R1 = Ts / (2.f * C1);
-		R2 = Ts / (2.f * C2);
+		R1 = getCapResistance(C1);
+		R2 = getCapResistance(C2);
 
 		G1 = (1.f + R4 / R1);
 		G4 = (1.f + R1 / R4);
 	}
-
-	static float symmetricDiodes(float Vin, bool isDenom = false, float n = 1.f)
-	{
-		const float eta = 1.f;
-		const float Is = (float) 1e-15;
-		const float Vt = (float) 26e-3;
-
-		float Vd = 0.f;
-
-		if (isDenom)
-    	{
-    		Vd = 2.f * Is / (n * eta * Vt) * cosh(Vin / (n * eta * Vt));
-    	}
-    	else
-    	{
-    		Vd = 2.f * Is * sinh(Vin / (n * eta * Vt));
-    	}
-
-    	return Vd;
-	}
-
-	static float positiveDiode(float Vin, bool isDenom = false, float n = 1.f)
-    {
-    	const float eta = 1.2f;
-    	const float Is = (float) 10e-12;
-    	const float Vt = (float) 26e-3;
-
-    	float Vd = 0.f;
-
-    	if (isDenom)
-    	{
-    		Vd = (Is / (n * eta * Vt)) * exp(Vin / (n * eta * Vt));
-    	}
-    	else
-    	{
-    		Vd = Is * (exp(Vin / (n * eta * Vt)) - 1);
-    	}
-
-    	return Vd;
-    }
-
-    static float negativeDiode(float Vin, bool isDenom = false, float n = 1.f)
-    {
-    	const float eta = 1.2f;
-    	const float Is = (float) 10e-12;
-    	const float Vt = (float) 26e-3;
-
-    	float Vd = 0.f;
-
-    	if (isDenom)
-    	{
-    		Vd = (Is / (n * eta * Vt)) * exp(-Vin / (n * eta * Vt));
-    	}
-    	else
-    	{
-    		Vd = -Is * (exp(-Vin / (n * eta * Vt)) - 1);
-    	}
-
-    	return Vd;
-    }
 
 	//==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NonInvertingOpAmpClipper)
