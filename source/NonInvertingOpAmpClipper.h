@@ -3,7 +3,7 @@
  * 1. [x] I'll digitise the Non-Inverting Op Amp Clipper Circuit
  * 2. [x] Mark variables as constants
  * 2. [x] Fix the warning for explicit conversion to float
- * 2. Refactor Diodes into a function
+ * 2. [x] Refactor Diodes into a function
  * 3. Refactor the reset method
  * 4. Refactor base class for processor
  * 5. Ensure that the sample rate is being updated
@@ -95,13 +95,13 @@ private:
 
 		float p = -Vin / (G4 * R4) + R1 / (G4 * R4) * X1 - X2;
 
-		float fVd = p + Vd / R2 + Vd / R3 + symmetricDiodes(Vd);
+		float fVd = p + Vd / R2 + Vd / R3 + positiveDiode(Vd) + negativeDiode(Vd);
 
 		while (iter < 50 && abs(fVd) > thr)
 		{
-			float fpVd = symmetricDiodes(Vd, true) + 1.f / R2 + 1.f / R3;
+			float fpVd = positiveDiode(Vd, true) + negativeDiode(Vd, true) + 1.f / R2 + 1.f / R3;
 			float Vnew = Vd - b * fVd / fpVd;
-			float fn = p + Vnew / R2 + Vnew / R3 + symmetricDiodes(Vnew);
+			float fn = p + Vnew / R2 + Vnew / R3 + positiveDiode(Vnew) + negativeDiode(Vnew);
 
 			if (abs(fn) < abs(fVd))
 			{
@@ -113,7 +113,7 @@ private:
 				b *= 0.5f;
 			}
 
-			fVd = p + Vd / R2 + Vd / R3 + symmetricDiodes(Vd);
+			fVd = p + Vd / R2 + Vd / R3 + positiveDiode(Vd) + negativeDiode(Vd);
 			iter++;
 		}
 
@@ -154,6 +154,46 @@ private:
 
     	return Vd;
 	}
+
+	static float positiveDiode(float Vin, bool isDenom = false, float n = 1.f)
+    {
+    	const float eta = 1.2f;
+    	const float Is = (float) 10e-12;
+    	const float Vt = (float) 26e-3;
+
+    	float Vd = 0.f;
+
+    	if (isDenom)
+    	{
+    		Vd = (Is / (n * eta * Vt)) * exp(Vin / (n * eta * Vt));
+    	}
+    	else
+    	{
+    		Vd = Is * (exp(Vin / (n * eta * Vt)) - 1);
+    	}
+
+    	return Vd;
+    }
+
+    static float negativeDiode(float Vin, bool isDenom = false, float n = 1.f)
+    {
+    	const float eta = 1.2f;
+    	const float Is = (float) 10e-12;
+    	const float Vt = (float) 26e-3;
+
+    	float Vd = 0.f;
+
+    	if (isDenom)
+    	{
+    		Vd = (Is / (n * eta * Vt)) * exp(-Vin / (n * eta * Vt));
+    	}
+    	else
+    	{
+    		Vd = -Is * (exp(-Vin / (n * eta * Vt)) - 1);
+    	}
+
+    	return Vd;
+    }
 
 	//==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NonInvertingOpAmpClipper)
