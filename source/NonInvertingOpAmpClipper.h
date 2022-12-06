@@ -6,7 +6,7 @@
  * 2. [x] Refactor Diodes into a function
  * 3. [x] Refactor the reset method
  * 4. [x] Refactor base class for processor
- * 5. Ensure that the sample rate is being updated
+ * 5. [x] Ensure that the sample rate is being updated
  *
  * At each step make sure it works
  *
