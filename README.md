@@ -1,9 +1,8 @@
-# SYNPluginTemplate
-Starter project for Sayan.Audio Plugins
+# Diode Distortion Playground
 
+This plugin demonstrates basic diode distortion circuits using symmetric and asymmetric diode clipping using nodal analysis.
 
-Make sure to edit `CMakeLists.txt`
-
+## Get Started
 ```
 git clone --recurse-submodules <repo>;
 cd <repo>/build;
